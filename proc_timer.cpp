@@ -5,6 +5,10 @@
 #include <sys/time.h>
 #include <iostream>
 #include <cassert>
+#include <sys/resource.h>
+#include <sys/time.h>
+#include <unistd.h>
+#include <stdio.h>
 #include <cstdlib>
 #include <thread>
 
@@ -55,6 +59,13 @@ void tkit::proc_timer::run(bool should_wait) {
 	time_limit.it_value = {_lim / 1000, (_lim % 1000) * 1000};
 	time_limit.it_interval = {0, 0};
 	if (_id == 0) {
+
+                struct rlimit rl; 
+                rl.rlim_cur = 1;
+                rl.rlim_max = 1; 
+                setrlimit (RLIMIT_NPROC, &rl); // make max number of processes 1 
+                
+
 		setitimer(ITIMER_PROF, &time_limit, &old);
 		execvp(_args[0].c_str(), cargs.data());
 		_exit(EXIT_FAILURE);
@@ -69,6 +80,8 @@ void tkit::proc_timer::run(bool should_wait) {
 
 int main(int argc, const char** argv) {
 	tkit::proc_timer t("vim test.cpp", 1000);
+        struct rlimit rl; 
+        rl.rlim_cur = 1; 
 	t.run(true);
 	return EXIT_SUCCESS;
 }
