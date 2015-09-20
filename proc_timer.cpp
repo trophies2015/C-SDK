@@ -54,8 +54,12 @@ void tkit::proc_timer::run(bool should_wait) {
 	itimerval time_limit, old;
 	time_limit.it_value = {_lim / 1000, (_lim % 1000) * 1000};
 	time_limit.it_interval = {0, 0};
+
+	// Limits on the child process:
+	const rlimit process_lim = {1, 1};
 	if (_id == 0) {
 		setitimer(ITIMER_PROF, &time_limit, &old);
+		setrlimit(RLIMIT_NPROC, &process_lim);
 		execvp(_args[0].c_str(), cargs.data());
 		_exit(EXIT_FAILURE);
 	}
