@@ -1,19 +1,27 @@
-#include <sys/resource.h> 
-#include <sys/time.h> 
-#include <unistd.h> 
-#include<stdio.h> 
-#include <stdlib.h>  
-int main () 
- { 
-   struct rlimit rl;   
-   rl.rlim_cur = 100; 
-   rl.rlim_max = 100; 
-   setrlimit (RLIMIT_AS, &rl); 
-   getrlimit (RLIMIT_AS, &rl); 
-   printf("%lld\n", rl.rlim_cur);
-   char * p; 
-   p = (char *) malloc (1024);
-   if (p == NULL) printf("%s\n", "FAILED"); 
-   else printf("%s\n", "SUCCESS"); 
-   return 0; 
- }
+#include <sys/resource.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+
+int main(int argc, const char** argv) {
+	struct rlimit lim;
+	getrlimit(RLIMIT_DATA, &lim);
+	lim.rlim_cur = 100;
+	if (setrlimit(RLIMIT_AS, &lim)) {
+      perror("setrlimit");
+      return EXIT_FAILURE;
+   }
+
+	void* memory = malloc(2 * lim.rlim_cur);
+	*(int*)memory = 3;
+	if (memory != NULL) {
+		puts("FAILURE");
+		free(memory);
+	}
+
+	else {
+		puts("SUCCESS");
+	}
+
+	return EXIT_SUCCESS;
+}

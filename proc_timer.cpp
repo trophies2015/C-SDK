@@ -2,9 +2,11 @@
 #include "errors.h"
 
 #include <sys/wait.h>
+#include <sys/time.h>
 #include <iostream>
 #include <cassert>
 #include <cstdlib>
+#include <thread>
 
 void tkit::proc_timer::_run_helper() {
 	using user_clock     = boost::chrono::process_user_cpu_clock;
@@ -13,18 +15,28 @@ void tkit::proc_timer::_run_helper() {
 	using millisecs      = boost::chrono::milliseconds;
 
 
-	/* Measure wall-clock time for now. 
+	/* Measure CPU time for now. 
 	 * There will be multiple modes eventually.
 	 * I think CPU time might be more appropriate.
 	 * I'll consider this option later.
 	 */
 
 	int status;
-	const auto start = wall_clock::now();
+	const auto start = user_clock::now();
+	const auto sys_start = system_clock::now();
 	waitpid(_id, &status, 0);
-	const auto duration = wall_clock::now() - start;
-	const auto total = boost::chrono::duration_cast<millisecs>(duration).count();
-	std::cout << total << '\n';
+	const auto duration = user_clock::now() - start;
+	const auto system_duration = system_clock::now() - sys_start;
+	const auto user_total = boost::chrono::duration_cast<millisecs>(duration).count();
+	const auto system_total = boost::chrono::duration_cast<millisecs>(system_duration).count();
+	const auto result = user_total + system_total;
+
+	bool tled = (WIFSIGNALED(status) && WEXITSTATUS(status) == SIGPROF);
+	tled = (tled || (result > _lim));
+	if (tled)
+		std::cout << "Time limit exceeded.\n";
+	else
+		std::cout << "Passed!\n";
 }
 
 void tkit::proc_timer::run(bool should_wait) {
@@ -40,6 +52,10 @@ void tkit::proc_timer::run(bool should_wait) {
 		throw fork_error();
 
 	if (_id == 0) {
+		itimerval time_limit, old;
+		time_limit.it_value = {_lim / 1000, (_lim % 1000) * 1000};
+		time_limit.it_interval = {0, 0};
+		setitimer(ITIMER_PROF, &time_limit, &old);
 		execvp(_args[0].c_str(), cargs.data());
 		_exit(EXIT_FAILURE);
 	}
@@ -52,7 +68,7 @@ void tkit::proc_timer::run(bool should_wait) {
 }
 
 int main(int argc, const char** argv) {
-	tkit::proc_timer t("vim rose.cpp", 1.0);
+	tkit::proc_timer t("vim memorylimit.c", 300);
 	t.run(true);
 	return EXIT_SUCCESS;
 }

@@ -8,7 +8,6 @@
 #include <boost/chrono.hpp>
 #include <vector>
 #include <string>
-#include <thread>
 
 #include "utils.h"
 
