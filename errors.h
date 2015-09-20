@@ -1,3 +1,6 @@
+#ifndef TKIT_ERROR
+#define TKIT_ERROR
+
 #include <stdexcept>
 
 namespace tkit {
@@ -26,3 +29,5 @@ namespace tkit {
 		}
 	};
 }
+
+#endif
