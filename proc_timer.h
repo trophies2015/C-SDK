@@ -5,7 +5,6 @@
 	#error You need to compile this file on a UNIX system.
 #endif
 
-#include <boost/chrono.hpp>
 #include <vector>
 #include <string>
 

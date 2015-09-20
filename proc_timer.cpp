@@ -1,6 +1,7 @@
 #include "proc_timer.h"
 #include "errors.h"
 
+#include <boost/chrono.hpp>
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/time.h>
