@@ -29,9 +29,8 @@ void tkit::proc_timer::_run_helper() {
 
 void tkit::proc_timer::run(bool should_wait) {
  	std::vector<char*> cargs;
-	for (int i = 1; i < _args.size(); i++) {
+	for (int i = 0; i < _args.size(); i++) {
 		const auto arg = _args[i];
-		std::cout << arg << '\n';
 		cargs.push_back(const_cast<char*>(arg.c_str()));
 	}
 
