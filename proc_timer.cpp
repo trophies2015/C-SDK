@@ -1,14 +1,11 @@
 #include "proc_timer.h"
 #include "errors.h"
 
+#include <sys/resource.h>
 #include <sys/wait.h>
 #include <sys/time.h>
 #include <iostream>
-#include <cassert>
-#include <sys/resource.h>
-#include <sys/time.h>
 #include <unistd.h>
-#include <stdio.h>
 #include <cstdlib>
 #include <thread>
 
