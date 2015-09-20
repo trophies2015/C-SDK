@@ -31,7 +31,7 @@ void tkit::proc_timer::_run_helper() {
 	const auto system_total = boost::chrono::duration_cast<millisecs>(system_duration).count();
 	const auto result = user_total + system_total;
 
-	bool tled = (WIFSIGNALED(status) && WEXITSTATUS(status) == SIGPROF);
+	bool tled = (WIFSIGNALED(status) && WTERMSIG(status) == SIGPROF);
 	tled = (tled || (result > _lim));
 	if (tled)
 		std::cout << "Time limit exceeded.\n";
@@ -51,10 +51,10 @@ void tkit::proc_timer::run(bool should_wait) {
 	if (_id == -1)
 		throw fork_error();
 
+	itimerval time_limit, old;
+	time_limit.it_value = {_lim / 1000, (_lim % 1000) * 1000};
+	time_limit.it_interval = {0, 0};
 	if (_id == 0) {
-		itimerval time_limit, old;
-		time_limit.it_value = {_lim / 1000, (_lim % 1000) * 1000};
-		time_limit.it_interval = {0, 0};
 		setitimer(ITIMER_PROF, &time_limit, &old);
 		execvp(_args[0].c_str(), cargs.data());
 		_exit(EXIT_FAILURE);
@@ -68,7 +68,7 @@ void tkit::proc_timer::run(bool should_wait) {
 }
 
 int main(int argc, const char** argv) {
-	tkit::proc_timer t("vim memorylimit.c", 300);
+	tkit::proc_timer t("vim test.cpp", 1000);
 	t.run(true);
 	return EXIT_SUCCESS;
 }
