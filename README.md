@@ -1,2 +1,2 @@
 # C-SDK
-A C++ SDK.
+A C++ SDK for HackerEarth.
